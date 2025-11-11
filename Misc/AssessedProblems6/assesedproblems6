@@ -9,8 +9,8 @@ y_err = np.array([3, 3, 3, 3])
 lny = np.log(y)
 lny_err = np.sqrt( (y_err ** 2 / y ** 2) )
 
-print(lny)
-print(lny_err)
+print(f"ln(y): {lny}")
+print(f"sigma_ln(y): {lny_err}")
 
 def sum(arr):
 
@@ -27,29 +27,37 @@ Sxx = sum(x ** 2 / ( lny_err ** 2 ))
 Sd = sum(lny / ( lny_err ** 2 ))
 Sdx = sum(( x * lny ) / ( lny_err ** 2 ))
 
-print(S, Sx, Sxx, Sd, Sdx)
+print(f"S: {S}, Sx: {Sx}, Sxx: {Sxx}, Sd: {Sd}, Sdx: {Sdx}")
 
 
 delta = S * Sxx - Sx ** 2
-gradient = ( S * Sdx - Sd * Sx ) / delta
-intercept = ( Sd * Sxx - Sx * Sdx ) / delta
+m = ( S * Sdx - Sd * Sx ) / delta
+c = ( Sd * Sxx - Sx * Sdx ) / delta
 
 m_err = np.sqrt(S / delta)
 c_err = np.sqrt(Sxx / delta)
 
-k = np.e ** intercept
+k = np.e ** c
+k_err = np.sqrt((np.e ** (c * 2)) * (c_err ** 2))
 
-print(f'Best-fit model: ln(y) = {np.round(gradient, 3)}x + ln({np.round(k, 3)})\nk = {k}')
-print(m_err, c_err)
+print(f'Best-fit model: ln(y) = {np.round(m, 3)}x + ln({np.round(k, 3)})\nk = {k}')
+print(f"sigma_m: {m_err}, sigma_c: {c_err}, sigma_k: {k_err}")
 
 x_line = np.linspace(min(x), max(x), 100)
-y_line = gradient * x_line + intercept
+y_line = m * x_line + c
+
+cov_mc = - Sx / delta
+cor_mc = cov_mc / np.sqrt((m_err ** 2) * (c_err ** 2))
+
+cov_mk = cor_mc * m_err * k_err
+
+print(f"cov_mc: {cov_mc}, cor_mc: {cor_mc}, cov_mk: {cov_mk}")
 
 plt.figure(figsize=(8, 5))
 
 plt.errorbar(x, lny, yerr=lny_err, fmt='o', color='navy', ecolor='gray', elinewidth=2, capsize=4)
 
-plt.plot(x_line, y_line, 'r-', label=f'Best-fit model: ln(y) = {np.round(gradient, 3)}x + ln({np.round(k, 3)})')
+plt.plot(x_line, y_line, 'r-', label=f'Best-fit model: ln(y) = {np.round(m, 3)}x + ln({np.round(k, 3)})')
 
 plt.xlabel('x')
 plt.ylabel('ln(y)')
@@ -57,4 +65,4 @@ plt.title('Data with Errors and Best-fit Model')
 plt.legend()
 plt.grid(True)
 
-#plt.show()
+plt.show()
