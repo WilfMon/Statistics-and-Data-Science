@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.array([0, 2, 4, 6])
+y = np.array([1.07, 6.62, 17.36, 31.72])
+y_err = np.array([3, 3, 3, 3])
+
+# Calculations
+lny = np.log(y)
+lny_err = np.sqrt( (y_err ** 2 / y ** 2) )
+
+print(lny)
+print(lny_err)
+
+def sum(arr):
+
+    x = 0
+
+    for i in arr:
+        x = x + i
+
+    return x
+
+S = sum(1 / ( lny_err ** 2 ))
+Sx = sum(x / ( lny_err ** 2 ))
+Sxx = sum(x ** 2 / ( lny_err ** 2 ))
+Sd = sum(lny / ( lny_err ** 2 ))
+Sdx = sum(( x * lny ) / ( lny_err ** 2 ))
+
+print(S, Sx, Sxx, Sd, Sdx)
+
+
+delta = S * Sxx - Sx ** 2
+gradient = ( S * Sdx - Sd * Sx ) / delta
+intercept = ( Sd * Sxx - Sx * Sdx ) / delta
+
+m_err = np.sqrt(S / delta)
+c_err = np.sqrt(Sxx / delta)
+
+k = np.e ** intercept
+
+print(f'Best-fit model: ln(y) = {np.round(gradient, 3)}x + ln({np.round(k, 3)})\nk = {k}')
+print(m_err, c_err)
+
+x_line = np.linspace(min(x), max(x), 100)
+y_line = gradient * x_line + intercept
+
+plt.figure(figsize=(8, 5))
+
+plt.errorbar(x, lny, yerr=lny_err, fmt='o', color='navy', ecolor='gray', elinewidth=2, capsize=4)
+
+plt.plot(x_line, y_line, 'r-', label=f'Best-fit model: ln(y) = {np.round(gradient, 3)}x + ln({np.round(k, 3)})')
+
+plt.xlabel('x')
+plt.ylabel('ln(y)')
+plt.title('Data with Errors and Best-fit Model')
+plt.legend()
+plt.grid(True)
+
+#plt.show()
